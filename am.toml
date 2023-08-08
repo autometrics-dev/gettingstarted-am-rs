@@ -1,0 +1,6 @@
+pushgateway-enabled = false
+
+[[endpoint]]
+url = "http://localhost:3000/metrics"
+job-name = "api"
+honor-labels = true
