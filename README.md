@@ -16,7 +16,7 @@ To get the sample up and running you can follow these steps:
 ```bash
 git clone autometrics-dev/gettingstarted-am-rs
 
-cd gettingstarted-am-ts
+cd gettingstarted-am-rs
 ```
 
 2. Download the Autometrics CLI
