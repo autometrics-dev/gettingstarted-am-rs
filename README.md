@@ -37,6 +37,10 @@ cargo run
 
 The application will start on a port 3000 by default and expose a metrics endpoint.
 
+NOTE: You can override the listen address by exporting the `LISTEN_ADDRESS`
+environment variable. Note that you have to use this same address in the next
+step.
+
 4. Start the Autometrics CLI and Explorer
 
 Start the Autometrics CLI and point it to the endpoint it can scrape metrics from.

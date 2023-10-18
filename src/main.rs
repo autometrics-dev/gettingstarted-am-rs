@@ -2,6 +2,7 @@ use axum::http::StatusCode;
 use axum::response::IntoResponse;
 use axum::routing::get;
 use axum::Router;
+use std::env;
 use std::time::Duration;
 use tokio::time::sleep;
 
@@ -20,7 +21,7 @@ const API_SLO: Objective = Objective::new("api")
     .latency(ObjectiveLatency::Ms250, ObjectivePercentile::P90);
 
 #[tokio::main]
-async fn main() {
+async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     // Set up the exporter to collect metrics
     prometheus_exporter::init();
 
@@ -33,11 +34,29 @@ async fn main() {
             get(|| async { prometheus_exporter::encode_http_response() }),
         );
 
-    let addr = "[::]:3000".parse().unwrap();
-    axum::Server::bind(&addr)
-        .serve(app.into_make_service())
-        .await
-        .unwrap();
+    let addr = env::var("LISTEN_ADDRESS")
+        .unwrap_or_else(|_| "127.0.0.1:3000".to_string())
+        .parse()?;
+
+    let server = axum::Server::try_bind(&addr)?.serve(app.into_make_service());
+
+    let local_addr = server.local_addr();
+
+    eprintln!("Listening on: {local_addr}",);
+    eprintln!("");
+    eprintln!("The following endpoints are available: ");
+    eprintln!("");
+    eprintln!("- http://{local_addr}/        | static 200 response",);
+    eprintln!("- http://{local_addr}/slow    | same but it is delayed with 1 second",);
+    eprintln!("- http://{local_addr}/error   | static 500 response",);
+    eprintln!("- http://{local_addr}/metrics | Prometheus endpoint containing the metrics",);
+    eprintln!("");
+    eprintln!("To see the metrics in Explorer run: `am start {local_addr}`");
+
+    // Start accepting and handling requests
+    server.await?;
+
+    Ok(())
 }
 
 // our main handler function that is fine
